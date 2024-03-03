@@ -1,0 +1,52 @@
+﻿@page "/accounts"
+@using WebBankDashboard.BankClient
+
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject IBankClient BankClient
+
+<RadzenButton class="rz-mb-5" Click=@(args => CreateAccountDialog("TEST")) Text="Create Account" ButtonStyle="ButtonStyle.Primary" />
+<br/>
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PagerHorizontalAlign="HorizontalAlign.Left" 
+    Data="@BankAccounts" TItem="BankAccount" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+    <Columns>
+        <RadzenDataGridColumn TItem="BankAccount" Property="id" Filterable="false" Title="Account Id" TextAlign="TextAlign.Center">
+            <Template Context="data">
+                @* <RadzenButton Variant="Variant.Text" Click=@(args => OnClick("Primary button")) Text="Primary" ButtonStyle="ButtonStyle.Primary" /> *@
+                <RadzenLink Path="@("accounts/" + data.id)" Text="@data.id.ToString()"/>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="BankAccount" Property="number" Title="Account Number" />
+         <RadzenDataGridColumn TItem="BankAccount" Property="owner" Title="Owner" />
+        <RadzenDataGridColumn TItem="BankAccount" Property="openDate" FormatString="{0:d}" Title="Open Date"/>
+        <RadzenDataGridColumn TItem="BankAccount" Property="balance" Title="Balance" />
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    private IEnumerable<BankAccount> BankAccounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        BankAccounts = await BankClient.GetAccountsAsync();
+    }
+    
+    private async Task CreateAccountDialog(string text)
+    {
+        await DialogService.OpenAsync<CreateAccountDialog>($"Создать аккаунт.", new Dictionary<string, object>() { { "OnAccountCreated", () =>
+        {
+            OnAccountCreated();
+        }
+        } });
+
+
+    }
+
+    private async Task OnAccountCreated()
+    {
+        BankAccounts = await BankClient.GetAccountsAsync();
+        StateHasChanged();
+    }
+
+}

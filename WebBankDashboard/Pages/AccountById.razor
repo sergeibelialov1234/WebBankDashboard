@@ -1,0 +1,97 @@
+@page "/accounts/{AccountId}"
+@using WebBankDashboard.BankClient
+@using System.Text.Json
+@inject IBankClient BankClient
+@inject DialogService DialogService
+@inject NavigationManager Navigation
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenTemplateForm TItem="BankAccount" Data=@model Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <RadzenStack Gap="1rem" Class="rz-p-sm-12">
+            <RadzenFormField Text="Имя Владельца" Variant="@variant">
+                <ChildContent>
+                    <RadzenTextBox Name="FirstName" @bind-Value=@model.owner />
+                </ChildContent>
+                <Helper>
+                    <RadzenRequiredValidator Component="FirstName" Text="Введите имя владельца" />
+                </Helper>
+            </RadzenFormField>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start"  Wrap="FlexWrap.Wrap">
+                            <p>Balance: @model.balance</p>  
+                            <RadzenButton ButtonType="ButtonType.Button" Text="Deposit" Click=@(args => DepositDiagOpen())></RadzenButton>
+                            <RadzenButton ButtonType="ButtonType.Button" Text="Withdraw" ></RadzenButton>
+                        </RadzenStack>
+            <p>Date created: @model.openDate</p>
+            @* @foreach(var transaction in model.transactions) *@
+            @* { *@
+            @*     <p>Транзакция</p> *@
+            @* } *@
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start"  Wrap="FlexWrap.Wrap">
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Update" ></RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" ButtonType="ButtonType.Button" Text="Delete Account" Click="@OnDeleteClick" ></RadzenButton>
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenTemplateForm>
+</div>
+
+@code {
+    [Parameter]
+    public string AccountId { get; set; }
+    
+    private BankAccount model { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        model = await BankClient.GetAccountAsync(AccountId);
+    }
+    
+    Variant variant = Variant.Flat;
+
+    class Model
+    {
+        public string OwnerName { get; set; }
+    }
+
+    async Task OnSubmit(BankAccount arg)
+    {
+        var request = new BankAccount()
+        {
+            owner = arg.owner
+        };
+        await BankClient.UpdateAccountAsync(AccountId, request);
+        StateHasChanged();
+    }
+
+    static void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+        Console.WriteLine($"InvalidSubmit: {JsonSerializer.Serialize(args, new JsonSerializerOptions() {  WriteIndented = true })}");
+    }
+
+    private async Task OnDeleteClick()
+    {
+        var result = await DialogService.Confirm("Are you sure?", "Delete Account");
+        if (result == true)
+        {
+            await BankClient.DeleteAccountAsync(AccountId);
+            Navigation.NavigateTo("/accounts", true);
+        }
+    }
+
+    private async Task DepositDiagOpen()
+    {
+        await DialogService.OpenAsync<DepositDiag>($"Внести депозит.", new Dictionary<string, object>() { { "OnDeposit", () =>
+        {
+            OnDeposit();
+        }
+        }, { "AccountId", AccountId } });
+
+
+    }
+
+    private async Task OnDeposit()
+    {
+        model = await BankClient.GetAccountAsync(AccountId);
+        StateHasChanged();
+    }
+
+}

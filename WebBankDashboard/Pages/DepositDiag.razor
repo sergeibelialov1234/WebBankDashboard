@@ -1,0 +1,53 @@
+@using System.Text.Json
+@using WebBankDashboard.BankClient
+@inject IBankClient BankClient
+@inject DialogService DialogService
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenTemplateForm TItem="Model" Data=@model Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <RadzenStack Gap="1rem" Class="rz-p-sm-12">
+            <RadzenFormField Text="" Variant="@variant">
+                <ChildContent>
+                    <RadzenTextBox Name="Balance" @bind-Value=@model.Balance />
+                </ChildContent>
+                <Helper>
+                    <RadzenRequiredValidator Component="Balance" Text="" />
+                </Helper>
+            </RadzenFormField>
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Deposit" ></RadzenButton>
+        </RadzenStack>
+    </RadzenTemplateForm>
+</div>
+
+@code {
+    [Parameter]
+    public Action? OnDeposit { get; set; }
+    
+    [Parameter]
+    public string AccountId { get; set; }
+    
+    Variant variant = Variant.Flat;
+
+    class Model
+    {
+        public string Balance { get; set; }
+    }
+    
+    readonly Model model = new Model();
+
+    async Task OnSubmit(Model arg)
+    {
+        var deposit = new BankClient.DepositTransaction
+        {
+            DepositAmount = arg.Balance
+        };
+        await BankClient.DepositAsync(AccountId,deposit);
+        OnDeposit();
+        DialogService.Close(true);
+    }
+
+    static void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+        Console.WriteLine($"InvalidSubmit: {JsonSerializer.Serialize(args, new JsonSerializerOptions() {  WriteIndented = true })}");
+    }
+}

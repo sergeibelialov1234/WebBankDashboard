@@ -1,0 +1,51 @@
+@using System.Text.Json
+@using WebBankDashboard.BankClient
+@inject IBankClient BankClient
+@inject DialogService DialogService
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenTemplateForm TItem="Model" Data=@model Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <RadzenStack Gap="1rem" Class="rz-p-sm-12">
+            <RadzenFormField Text="Имя Владельца" Variant="@variant">
+                <ChildContent>
+                    <RadzenTextBox Name="FirstName" @bind-Value=@model.OwnerName />
+                </ChildContent>
+                <Helper>
+                    <RadzenRequiredValidator Component="FirstName" Text="Введите имя владельца" />
+                </Helper>
+            </RadzenFormField>
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Submit" ></RadzenButton>
+        </RadzenStack>
+    </RadzenTemplateForm>
+</div>
+
+@code {
+    
+    [Parameter]
+    public Action? OnAccountCreated { get; set; }
+    
+    Variant variant = Variant.Flat;
+
+    class Model
+    {
+        public string OwnerName { get; set; }
+    }
+
+    readonly Model model = new Model();
+
+    async Task OnSubmit(Model arg)
+    {
+        var newAccount = new CreateBankAccount
+        {
+            owner = arg.OwnerName
+        };
+        await BankClient.CreateAccountAsync(newAccount);
+        OnAccountCreated();
+        DialogService.Close(true);
+    }
+
+    static void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+        Console.WriteLine($"InvalidSubmit: {JsonSerializer.Serialize(args, new JsonSerializerOptions() {  WriteIndented = true })}");
+    }
+}

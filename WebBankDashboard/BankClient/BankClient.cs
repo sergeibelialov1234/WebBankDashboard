@@ -11,6 +11,8 @@ public interface IBankClient
     Task UpdateAccountAsync(string accountId,BankAccount account);
     Task DeleteAccountAsync(string accountNumber);
     Task<BankAccount> DepositAsync(string accountNumber, BankClient.DepositTransaction depositTransaction);
+    Task<BankAccount> WithdrawAsync(string accountNumber, BankClient.WithdrawTransaction withdrawTransaction);
+    Task<BankAccount> TransferAsync(BankClient.TransferTransaction deposit);
 }
 
 public class BankAccount : CreateBankAccount
@@ -19,7 +21,17 @@ public class BankAccount : CreateBankAccount
     public DateTime openDate { get; set; } = DateTime.Now;
     public int number { get; set; }
     public int balance { get; set; }
-    public List<object> transactions { get; set; } = new List<object>();
+    public List<Transaction> transactions { get; set; } = new List<Transaction>();
+}
+
+public class Transaction
+{
+    public string Name { get; set; }
+    public DateTime Date { get; set; }
+    public int Amount { get; set; }
+    public int Account { get; set; }
+    public int OldBalance { get; set; }
+    public int NewBalance { get; set; }
 }
 
 public class CreateBankAccount
@@ -83,8 +95,38 @@ public class BankClient : IBankClient
         return data;
     }
 
+    public async Task<BankAccount> WithdrawAsync(string accountNumber, WithdrawTransaction withdrawTransaction)
+    {
+        var response = await _httpClient.PostAsync($"/accounts/{accountNumber}/withdraw", new StringContent(JsonSerializer.Serialize(withdrawTransaction), Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        var data = JsonSerializer.Deserialize<BankAccount>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return data;
+    }
+
+    public async Task<BankAccount> TransferAsync(TransferTransaction transfer)
+    {
+        var response = await _httpClient.PostAsync($"/accounts/transfer", new StringContent(JsonSerializer.Serialize(transfer), Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        var data = JsonSerializer.Deserialize<BankAccount>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return data;
+    }
+
     public class DepositTransaction
     {
        public string DepositAmount { get;set; }
+    }
+    
+    public class WithdrawTransaction
+    {
+        public string WithdrawAmount { get;set; }
+    }
+
+    public class TransferTransaction
+    {
+        public int FromId { get; set; }
+        public int ToId { get; set; }
+        public int Amount { get; set; }
     }
 }

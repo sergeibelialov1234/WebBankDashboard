@@ -5,10 +5,10 @@
 @inject DialogService DialogService
 @inject IBankClient BankClient
 
-<RadzenButton class="rz-mb-5" Click=@(args => CreateAccountDialog("TEST")) Text="Create Account" ButtonStyle="ButtonStyle.Primary" />
+<RadzenButton class="rz-mb-5" Click=@(args => CreateAccountDialog()) Text="Create Account" ButtonStyle="ButtonStyle.Primary" />
 <br/>
 <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PagerHorizontalAlign="HorizontalAlign.Left" 
-    Data="@BankAccounts" TItem="BankAccount" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+    Data="@BankAccounts" TItem="BankAccount" ColumnWidth="auto" LogicalFilterOperator="LogicalFilterOperator.Or">
     <Columns>
         <RadzenDataGridColumn TItem="BankAccount" Property="id" Filterable="false" Title="Account Id" TextAlign="TextAlign.Center">
             <Template Context="data">
@@ -17,7 +17,7 @@
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="BankAccount" Property="number" Title="Account Number" />
-         <RadzenDataGridColumn TItem="BankAccount" Property="owner" Title="Owner" />
+        <RadzenDataGridColumn TItem="BankAccount" Property="owner" Title="Owner" />
         <RadzenDataGridColumn TItem="BankAccount" Property="openDate" FormatString="{0:d}" Title="Open Date"/>
         <RadzenDataGridColumn TItem="BankAccount" Property="balance" Title="Balance" />
     </Columns>
@@ -32,7 +32,7 @@
         BankAccounts = await BankClient.GetAccountsAsync();
     }
     
-    private async Task CreateAccountDialog(string text)
+    private async Task CreateAccountDialog()
     {
         await DialogService.OpenAsync<CreateAccountDialog>($"Создать аккаунт.", new Dictionary<string, object>() { { "OnAccountCreated", () =>
         {

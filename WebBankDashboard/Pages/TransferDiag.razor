@@ -1,0 +1,69 @@
+@using System.Text.Json
+@using WebBankDashboard.BankClient
+@inject IBankClient BankClient
+@inject DialogService DialogService
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenTemplateForm TItem="Model" Data=@model Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <RadzenStack Gap="1rem" Class="rz-p-sm-12">
+            <RadzenLabel Text="Transfer To:" Component="DropDownBindValue" Style="margin-right: 8px; vertical-align: middle;" />
+            <RadzenDropDown TValue="string" @bind-Value=@TranfserToId Data=@AccountNumbers Change="@(args => TranfserToId = $"{args}")" Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
+            <RadzenFormField Text="" Variant="@variant">
+                <ChildContent>
+                    <RadzenTextBox Name="Balance" @bind-Value=@model.Balance/>
+                </ChildContent>
+                <Helper>
+                    <RadzenRequiredValidator Component="Balance" Text=""/>
+                </Helper>
+            </RadzenFormField>
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Transfer" ></RadzenButton>
+        </RadzenStack>
+    </RadzenTemplateForm>
+</div>
+
+@code {
+    [Parameter]
+    public Action? OnTransfer { get; set; }
+    
+    [Parameter]
+    public string AccountId { get; set; }
+    
+    public List<string> AccountNumbers { get; set; }
+
+    public string TranfserToId { get; set; }
+
+    Variant variant = Variant.Flat;
+
+    class Model
+    {
+        public string Balance { get; set; }
+    }
+    
+    readonly Model model = new Model();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var accounts = await BankClient.GetAccountsAsync();
+
+        AccountNumbers = accounts.Select(x => x.number.ToString()).ToList();
+    }
+    
+    async Task OnSubmit(Model arg)
+    {
+        var deposit = new BankClient.TransferTransaction()
+        {
+            Amount = int.Parse(arg.Balance),
+            FromId = int.Parse(AccountId),
+            ToId = int.Parse(TranfserToId),
+            
+        };
+        await BankClient.TransferAsync(deposit);
+        OnTransfer();
+        DialogService.Close(true);
+    }
+
+    static void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+        Console.WriteLine($"InvalidSubmit: {JsonSerializer.Serialize(args, new JsonSerializerOptions() {  WriteIndented = true })}");
+    }
+}

@@ -19,13 +19,21 @@
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start"  Wrap="FlexWrap.Wrap">
                             <p>Balance: @model.balance</p>  
                             <RadzenButton ButtonType="ButtonType.Button" Text="Deposit" Click=@(args => DepositDiagOpen())></RadzenButton>
-                            <RadzenButton ButtonType="ButtonType.Button" Text="Withdraw" ></RadzenButton>
+                            <RadzenButton ButtonType="ButtonType.Button" Text="Withdraw" Click=@(args => WithdrawDiagOpen())></RadzenButton>
+                            <RadzenButton ButtonType="ButtonType.Button" Text="Transfer" Click=@(args => TransferDiagOpen())></RadzenButton>
                         </RadzenStack>
             <p>Date created: @model.openDate</p>
-            @* @foreach(var transaction in model.transactions) *@
-            @* { *@
-            @*     <p>Транзакция</p> *@
-            @* } *@
+            Транзакции:
+            <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PagerHorizontalAlign="HorizontalAlign.Left" 
+                Data="@model.transactions" TItem="Transaction" ColumnWidth="auto" LogicalFilterOperator="LogicalFilterOperator.Or">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Transaction" Property="Date" FormatString="{0:d}" Title="Date" />
+                    <RadzenDataGridColumn TItem="Transaction" Property="Name" Title="Name" />
+                    <RadzenDataGridColumn TItem="Transaction" Property="Amount" Title="Amount"/>
+                    <RadzenDataGridColumn TItem="Transaction" Property="OldBalance" Title="OldBalance" />
+                    <RadzenDataGridColumn TItem="Transaction" Property="NewBalance" Title="NewBalance" />
+                </Columns>
+            </RadzenDataGrid>
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start"  Wrap="FlexWrap.Wrap">
                 <RadzenButton ButtonType="ButtonType.Submit" Text="Update" ></RadzenButton>
                 <RadzenButton ButtonStyle="ButtonStyle.Danger" ButtonType="ButtonType.Button" Text="Delete Account" Click="@OnDeleteClick" ></RadzenButton>
@@ -84,8 +92,24 @@
             OnDeposit();
         }
         }, { "AccountId", AccountId } });
+    }
 
-
+    private async Task WithdrawDiagOpen()
+    {
+        await DialogService.OpenAsync<WithdrawDiag>($"Снять деньги.", new Dictionary<string, object>() { { "OnWithdraw", () =>
+            {
+                OnWithdraw();
+            }
+        }, { "AccountId", AccountId } });
+    }
+    
+    private async Task TransferDiagOpen()
+    {
+        await DialogService.OpenAsync<TransferDiag>($"Перевести деньги.", new Dictionary<string, object>() { { "OnTransfer", () =>
+            {
+                OnTransfer();
+            }
+        }, { "AccountId", @model.number.ToString() } });
     }
 
     private async Task OnDeposit()
@@ -93,5 +117,16 @@
         model = await BankClient.GetAccountAsync(AccountId);
         StateHasChanged();
     }
-
+    
+    private async Task OnWithdraw()
+    {
+        model = await BankClient.GetAccountAsync(AccountId);
+        StateHasChanged();
+    }
+    
+    private async Task OnTransfer()
+    {
+        model = await BankClient.GetAccountAsync(AccountId);
+        StateHasChanged();
+    }
 }

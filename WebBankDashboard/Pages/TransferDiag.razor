@@ -8,6 +8,7 @@
         <RadzenStack Gap="1rem" Class="rz-p-sm-12">
             <RadzenLabel Text="Transfer To:" Component="DropDownBindValue" Style="margin-right: 8px; vertical-align: middle;" />
             <RadzenDropDown TValue="string" @bind-Value=@TranfserToId Data=@AccountNumbers Change="@(args => TranfserToId = $"{args}")" Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
+            <RadzenLabel Text="Amount:"></RadzenLabel>
             <RadzenFormField Text="" Variant="@variant">
                 <ChildContent>
                     <RadzenTextBox Name="Balance" @bind-Value=@model.Balance/>
@@ -45,7 +46,7 @@
     {
         var accounts = await BankClient.GetAccountsAsync();
 
-        AccountNumbers = accounts.Select(x => x.number.ToString()).ToList();
+        AccountNumbers = accounts.Select(x => x.id.ToString()).ToList();
     }
     
     async Task OnSubmit(Model arg)

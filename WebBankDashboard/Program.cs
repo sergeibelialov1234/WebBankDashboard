@@ -12,7 +12,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<IBankClient, BankClient>();
 builder.Services.AddHttpClient<IBankClient, BankClient>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7247");
+    client.BaseAddress = new Uri("https://localhost:7241");
 });
 builder.Services.AddRadzenComponents();
 var app = builder.Build();

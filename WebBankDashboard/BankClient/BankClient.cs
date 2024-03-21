@@ -5,13 +5,13 @@ namespace WebBankDashboard.BankClient;
 
 public interface IBankClient
 {
-    Task<BankAccount> GetAccountAsync(string accountNumber);
+    Task<BankAccount> GetAccountAsync(string accountId);
     Task<IEnumerable<BankAccount>> GetAccountsAsync();
     Task CreateAccountAsync(CreateBankAccount account);
     Task UpdateAccountAsync(string accountId,BankAccount account);
-    Task DeleteAccountAsync(string accountNumber);
-    Task<BankAccount> DepositAsync(string accountNumber, BankClient.DepositTransaction depositTransaction);
-    Task<BankAccount> WithdrawAsync(string accountNumber, BankClient.WithdrawTransaction withdrawTransaction);
+    Task DeleteAccountAsync(string accountId);
+    Task<BankAccount> DepositAsync(string accountId, BankClient.DepositTransaction depositTransaction);
+    Task<BankAccount> WithdrawAsync(string accountId, BankClient.WithdrawTransaction withdrawTransaction);
     Task<BankAccount> TransferAsync(BankClient.TransferTransaction deposit);
 }
 
@@ -48,9 +48,9 @@ public class BankClient : IBankClient
         _httpClient = httpClient;
     }
 
-    public async Task<BankAccount> GetAccountAsync(string accountNumber)
+    public async Task<BankAccount> GetAccountAsync(string accountId)
     {
-        var response = await _httpClient.GetAsync($"/accounts/{accountNumber}");
+        var response = await _httpClient.GetAsync($"/accounts/{accountId}");
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<BankAccount>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -80,24 +80,24 @@ public class BankClient : IBankClient
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task DeleteAccountAsync(string accountNumber)
+    public async Task DeleteAccountAsync(string accountId)
     {
-        var response = await _httpClient.DeleteAsync($"/accounts/{accountNumber}");
+        var response = await _httpClient.DeleteAsync($"/accounts/{accountId}");
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<BankAccount> DepositAsync(string accountNumber, DepositTransaction depositTransaction)
+    public async Task<BankAccount> DepositAsync(string accountId, DepositTransaction depositTransaction)
     {
-        var response = await _httpClient.PostAsync($"/accounts/{accountNumber}/deposit", new StringContent(JsonSerializer.Serialize(depositTransaction), Encoding.UTF8, "application/json"));
+        var response = await _httpClient.PostAsync($"/accounts/{accountId}/deposit", new StringContent(JsonSerializer.Serialize(depositTransaction), Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<BankAccount>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         return data;
     }
 
-    public async Task<BankAccount> WithdrawAsync(string accountNumber, WithdrawTransaction withdrawTransaction)
+    public async Task<BankAccount> WithdrawAsync(string accountId, WithdrawTransaction withdrawTransaction)
     {
-        var response = await _httpClient.PostAsync($"/accounts/{accountNumber}/withdraw", new StringContent(JsonSerializer.Serialize(withdrawTransaction), Encoding.UTF8, "application/json"));
+        var response = await _httpClient.PostAsync($"/accounts/{accountId}/withdraw", new StringContent(JsonSerializer.Serialize(withdrawTransaction), Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<BankAccount>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

@@ -26,12 +26,19 @@ public class BankAccount : CreateBankAccount
 
 public class Transaction
 {
-    public string Name { get; set; }
+    public TransactionType TrasactionType { get; set; }
     public DateTime Date { get; set; }
     public int Amount { get; set; }
     public int Account { get; set; }
     public int OldBalance { get; set; }
     public int NewBalance { get; set; }
+}
+
+public enum TransactionType
+{
+    Deposit = 1,
+    Withdraw,
+    Transfer
 }
 
 public class CreateBankAccount
@@ -115,12 +122,12 @@ public class BankClient : IBankClient
 
     public class DepositTransaction
     {
-       public string DepositAmount { get;set; }
+       public string Amount { get;set; }
     }
     
     public class WithdrawTransaction
     {
-        public string WithdrawAmount { get;set; }
+        public string Amount { get;set; }
     }
 
     public class TransferTransaction

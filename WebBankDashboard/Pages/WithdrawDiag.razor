@@ -39,7 +39,7 @@
     {
         var withdrawTransaction = new BankClient.WithdrawTransaction()
         {
-            WithdrawAmount = arg.Balance
+            Amount = arg.Balance
         };
         await BankClient.WithdrawAsync(AccountId,withdrawTransaction);
         OnWithdraw();

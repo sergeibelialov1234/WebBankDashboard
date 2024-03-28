@@ -39,7 +39,7 @@
     {
         var deposit = new BankClient.DepositTransaction
         {
-            DepositAmount = arg.Balance
+            Amount = arg.Balance
         };
         await BankClient.DepositAsync(AccountId,deposit);
         OnDeposit();
